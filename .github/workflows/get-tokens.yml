@@ -1,0 +1,63 @@
+name: Refresh PandoraNext Session token
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "25 1 */10 * *"
+  workflow_dispatch:
+
+jobs:
+  get_token:
+    runs-on: ubuntu-latest
+    env:
+      API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
+      POOL_TOKEN: ${{ secrets.POOL_TOKEN }}
+      SESSION_TOKEN: ${{ secrets.SESSION_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11.6
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install requests
+
+      - name: Add session file
+        run: |
+          echo "$SESSION_TOKEN" > session_tokens.txt
+
+      - name: run pandora-get-token.py in 20s
+        run: |
+          timeout 20 python3 pandora-get-token.py || echo "run pandora-get-token.py in 20s timeout. exit code: $?"
+
+      - name: Set session token secret
+        env:
+          GH_TOKEN: ${{ secrets.GH_CUSTOM_TOKEN }}
+        run: |
+          gh secret set SESSION_TOKEN < session_tokens.txt
+
+      - name: gpg-encrypt
+        env:
+          GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
+        run: |
+          for f in $( ls ./*.txt ); do
+            gpg -c --batch --yes --passphrase=${GPG_PASSWORD} $f
+            rm -rf $f
+          done
+
+      - name: release-gpg
+        uses: pyTooling/Actions/releaser@r0
+        if: ${{ always() }}
+        with:
+          tag: latest
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            *.gpg
