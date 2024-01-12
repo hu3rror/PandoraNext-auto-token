@@ -1,8 +1,10 @@
 #!/bin/sh
 
+CURRENT_PATH=$(dirname "$(readlink -f "$0")")
+
 # read GPG_PASSWORD from .env file
-if [ -f .env ]; then
-    . .env
+if [ -f "$CURRENT_PATH"/.env ]; then
+    . "$CURRENT_PATH"/.env
 else
     echo "Error: .env does not exist."
     exit 1
