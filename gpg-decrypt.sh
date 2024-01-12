@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# read GPG_PASSPHRASE from .env file
+# read GPG_PASSWORD from .env file
 if [ -f .env ]; then
     . .env
 else
@@ -8,9 +8,9 @@ else
     exit 1
 fi
 
-# check GPG_PASSPHRASE variable
-if [ -z "$GPG_PASSPHRASE" ]; then
-    echo "Error: GPG_PASSPHRASE variable is not set."
+# check GPG_PASSWORD variable
+if [ -z "$GPG_PASSWORD" ]; then
+    echo "Error: GPG_PASSWORD variable is not set."
     exit 1
 fi
 
@@ -19,8 +19,8 @@ curl -LO https://github.com/hu3rror/PandoraNext-auto-token/releases/download/lat
 curl -LO https://github.com/hu3rror/PandoraNext-auto-token/releases/download/latest/session_tokens.txt.gpg
 
 # decrypt *.gpg files
-gpg --batch --yes --passphrase "$GPG_PASSPHRASE" -d tokens.txt.gpg > tokens.txt
-gpg --batch --yes --passphrase "$GPG_PASSPHRASE" -d session_tokens.txt.gpg > session_tokens.txt
+gpg --batch --yes --passphrase "$GPG_PASSWORD" -d tokens.txt.gpg > tokens.txt
+gpg --batch --yes --passphrase "$GPG_PASSWORD" -d session_tokens.txt.gpg > session_tokens.txt
 
 # rm *.gpg files
 rm tokens.txt.gpg session_tokens.txt.gpg
